@@ -3,6 +3,14 @@ import { createId, query } from "@/lib/db";
 
 export const runtime = "nodejs";
 
+console.log('/api/contact initialized', {
+  DATABASE_URL: process.env.DATABASE_URL,
+  MYSQL_HOST: process.env.MYSQL_HOST,
+  MYSQL_PORT: process.env.MYSQL_PORT,
+  MYSQL_USER: process.env.MYSQL_USER,
+  MYSQL_DATABASE: process.env.MYSQL_DATABASE,
+});
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();

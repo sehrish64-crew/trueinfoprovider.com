@@ -2,14 +2,21 @@ import mysql from "mysql2/promise";
 import { randomUUID } from "crypto";
 
 const databaseUrl = process.env.DATABASE_URL;
+const mysqlHost = process.env.MYSQL_HOST;
+const mysqlPort = process.env.MYSQL_PORT;
+const mysqlUser = process.env.MYSQL_USER;
+const mysqlPassword = process.env.MYSQL_PASSWORD;
+const mysqlDatabase = process.env.MYSQL_DATABASE;
 
-let host = process.env.MYSQL_HOST || "localhost";
-let port = Number(process.env.MYSQL_PORT || 3306);
-let user = process.env.MYSQL_USER || "root";
-let password = process.env.MYSQL_PASSWORD || "";
-let database = process.env.MYSQL_DATABASE || "true_info_provider";
+let host = mysqlHost || "localhost";
+let port = Number(mysqlPort || 3306);
+let user = mysqlUser || "root";
+let password = mysqlPassword || "";
+let database = mysqlDatabase || "true_info_provider";
 
-if (databaseUrl) {
+const hasMysqlEnv = mysqlHost || mysqlPort || mysqlUser || mysqlPassword || mysqlDatabase;
+
+if (!hasMysqlEnv && databaseUrl) {
   try {
     const parsed = new URL(databaseUrl);
     const scheme = parsed.protocol.replace(":", "");
@@ -29,6 +36,8 @@ if (databaseUrl) {
     );
   }
 }
+
+console.log('DB config:', { databaseUrl, host, port, user, password: password ? '***' : '', database });
 
 const pool = mysql.createPool({
   host,
