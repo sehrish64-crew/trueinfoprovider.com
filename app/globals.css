@@ -48,6 +48,15 @@
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(0, 0, 0, 0.06);
   }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   .glass-strong {
     background: rgba(255, 255, 255, 0.97);
     backdrop-filter: blur(40px);

@@ -3,18 +3,30 @@ import { randomUUID } from "crypto";
 
 const databaseUrl = process.env.DATABASE_URL;
 const mysqlHost = process.env.MYSQL_HOST;
-const mysqlPort = process.env.MYSQL_PORT;
+const mysqlPortRaw = process.env.MYSQL_PORT;
 const mysqlUser = process.env.MYSQL_USER;
 const mysqlPassword = process.env.MYSQL_PASSWORD;
 const mysqlDatabase = process.env.MYSQL_DATABASE;
 
 let host = mysqlHost || "localhost";
-let port = Number(mysqlPort || 3306);
+let port = 3306;
 let user = mysqlUser || "root";
 let password = mysqlPassword || "";
 let database = mysqlDatabase || "true_info_provider";
 
-const hasMysqlEnv = mysqlHost || mysqlPort || mysqlUser || mysqlPassword || mysqlDatabase;
+const hasMysqlEnv = mysqlHost || mysqlUser || mysqlPassword || mysqlDatabase;
+
+if (mysqlPortRaw) {
+  const parsedPort = Number(mysqlPortRaw);
+  if (!Number.isInteger(parsedPort) || parsedPort <= 0) {
+    console.warn(
+      `Invalid MYSQL_PORT value: "${mysqlPortRaw}". Falling back to 3306.`
+    );
+    port = 3306;
+  } else {
+    port = parsedPort;
+  }
+}
 
 if (!hasMysqlEnv && databaseUrl) {
   try {

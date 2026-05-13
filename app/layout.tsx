@@ -7,7 +7,7 @@ import { Footer } from '@/components/footer';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://trueinfoprovider.co'),
+  metadataBase: new URL('https://trueinfoprovider.com'),
   title: 'True Info Provider - AI Health Analysis',
   description: 'AI-powered health analysis system. Get instant full AI reports with intelligent damage detection, condition scoring, and repair insights.',
   openGraph: {
