@@ -28,14 +28,29 @@ export default function ContactPage() {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
+      let data: any;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        const text = await response.text();
+        throw new Error(
+          text
+            ? `Server returned invalid response: ${text.slice(0, 200)}`
+            : 'Server returned invalid response.'
+        );
+      }
+
       if (!response.ok) {
-        throw new Error(data.error || 'Unable to submit contact message.');
+        throw new Error(data?.error || 'Unable to submit contact message.');
       }
 
       setSubmitted(true);
     } catch (submitError: any) {
-      setError(submitError?.message || 'Submission failed.');
+      setError(
+        submitError?.message?.includes('Unexpected token')
+          ? 'Server returned an unexpected response. Please try again or check the live API logs.'
+          : submitError?.message || 'Submission failed.'
+      );
     } finally {
       setLoading(false);
     }
