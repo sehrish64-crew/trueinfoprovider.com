@@ -1,24 +1,41 @@
 import { PutObjectCommand, S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 
-const r2Endpoint = process.env.R2_ENDPOINT;
-const r2Bucket = process.env.R2_BUCKET;
+function getR2Config() {
+  const endpoint = process.env.R2_ENDPOINT;
+  const bucket = process.env.R2_BUCKET;
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
 
-if (!r2Endpoint || !r2Bucket) {
-  throw new Error("Missing Cloudflare R2 configuration in environment variables.");
+  if (!endpoint || !bucket || !accessKeyId || !secretAccessKey) {
+    throw new Error("Missing Cloudflare R2 configuration in environment variables.");
+  }
+
+  return {
+    endpoint,
+    bucket,
+    accessKeyId,
+    secretAccessKey,
+  };
 }
 
-const s3Client = new S3Client({
-  endpoint: r2Endpoint,
-  region: "auto",
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID ?? "",
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? "",
-  },
-});
+function createR2Client() {
+  const { endpoint, accessKeyId, secretAccessKey } = getR2Config();
+  return new S3Client({
+    endpoint,
+    region: "auto",
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
+  });
+}
 
 export async function uploadBufferToR2(key: string, buffer: Buffer, contentType: string) {
+  const { bucket } = getR2Config();
+  const s3Client = createR2Client();
+
   const command = new PutObjectCommand({
-    Bucket: r2Bucket,
+    Bucket: bucket,
     Key: key,
     Body: buffer,
     ContentType: contentType,
@@ -29,8 +46,11 @@ export async function uploadBufferToR2(key: string, buffer: Buffer, contentType:
 }
 
 export async function downloadBufferFromR2(key: string) {
+  const { bucket } = getR2Config();
+  const s3Client = createR2Client();
+
   const command = new GetObjectCommand({
-    Bucket: r2Bucket,
+    Bucket: bucket,
     Key: key,
   });
 
@@ -51,18 +71,19 @@ export async function downloadBufferFromR2(key: string) {
 export function getR2ObjectKeyFromUrl(url: string) {
   try {
     const parsed = new URL(url);
-    const endpointHost = (r2Endpoint ?? "").replace(/^https?:\/\//, "").replace(/\/+$/, "");
-    const bucket = (r2Bucket ?? "").replace(/\/+$/, "");
+    const { endpoint, bucket } = getR2Config();
+    const endpointHost = endpoint.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+    const normalizedBucket = bucket.replace(/\/+$/, "");
 
     if (parsed.hostname === endpointHost || parsed.hostname === `www.${endpointHost}`) {
       const path = parsed.pathname.replace(/^\//, "");
-      if (path.startsWith(`${bucket}/`)) {
-        return path.slice(bucket.length + 1);
+      if (path.startsWith(`${normalizedBucket}/`)) {
+        return path.slice(normalizedBucket.length + 1);
       }
       return path;
     }
 
-    if (parsed.hostname === `${bucket}.${endpointHost}`) {
+    if (parsed.hostname === `${normalizedBucket}.${endpointHost}`) {
       return parsed.pathname.replace(/^\//, "");
     }
 
@@ -73,16 +94,17 @@ export function getR2ObjectKeyFromUrl(url: string) {
 }
 
 export function getR2PublicUrl(key: string) {
-  const rawEndpoint = (r2Endpoint ?? "").replace(/\/+$/, "");
-  const bucket = (r2Bucket ?? "").replace(/\/+$/, "");
+  const { endpoint, bucket } = getR2Config();
+  const rawEndpoint = endpoint.replace(/\/+$/, "");
+  const normalizedBucket = bucket.replace(/\/+$/, "");
   const encodedKey = key.split('/').map((segment) => encodeURIComponent(segment)).join('/');
 
   const endpointHost = rawEndpoint.replace(/^https?:\/\//, "");
   const isLocal = endpointHost.includes("localhost");
 
   if (isLocal) {
-    return `${rawEndpoint}/${bucket}/${encodedKey}`;
+    return `${rawEndpoint}/${normalizedBucket}/${encodedKey}`;
   }
 
-  return `https://${bucket}.${endpointHost}/${encodedKey}`;
+  return `https://${normalizedBucket}.${endpointHost}/${encodedKey}`;
 }
