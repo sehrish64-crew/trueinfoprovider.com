@@ -4,7 +4,12 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: { unoptimized: true },
-  output: 'standalone',
+  webpack(config, { isServer }) {
+    if (isServer) {
+      config.output.chunkFilename = '[name].js';
+    }
+    return config;
+  },
 };
 
 module.exports = nextConfig;
