@@ -1,17 +1,18 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
+import { Inter } from 'next/font/google'
 import './globals.css';
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://trueinfoprovider.com'),
   title: 'True Info Provider - AI Health Analysis',
-  description: 'AI-powered health analysis system. Get instant full AI reports with intelligent damage detection, condition scoring, and repair insights.',
+  description:
+    'AI-powered health analysis system. Get instant full AI reports with intelligent damage detection, condition scoring, and repair insights.',
   openGraph: {
     title: 'True Info Provider - AI Health Analysis',
-    description: 'AI-powered health analysis with intelligent damage detection and condition scoring.',
+    description:
+      'AI-powered health analysis with intelligent damage detection and condition scoring.',
   },
 };
 
@@ -22,7 +23,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-white text-foreground antialiased`}>
+      <body className="bg-white text-foreground antialiased font-sans">
         <Navbar />
         <main>{children}</main>
         <Footer />
