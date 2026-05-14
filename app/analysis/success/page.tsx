@@ -93,7 +93,7 @@ export default function AnalysisSuccessPage() {
             transition={{ delay: 0.4 }}
             className="rounded-[2rem] border border-gray-200 bg-white p-6 mb-8 shadow-sm"
           >
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">What's Included in Your Report</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">What&apos;s Included in Your Report</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
               <div className="flex items-start gap-3">
                 <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />

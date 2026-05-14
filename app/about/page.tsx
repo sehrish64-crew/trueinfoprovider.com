@@ -39,7 +39,7 @@ export default function AboutPage() {
               The Future of <span className="gradient-text">AI Health Analysis</span>
             </h1>
             <p className="text-gray-500 max-w-2xl mx-auto leading-relaxed">
-              True Info Provider is the UK&apos;s leading AI-powered health analysis platform. We combine cutting-edge computer vision with deep automotive expertise to deliver instant, accurate health condition intelligence.
+              True Info Provider is the UK&apos;s leading AI-powered health analysis platform. We combine cutting-edge computer vision with deep automotive expertise to deliver instant, accurate health condition intelligence.&apos;
             </p>
           </motion.div>
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChartBar as BarChart3, Users, FileText, DollarSign, TrendingUp, Activity, CircleCheck as CheckCircle2, Clock, CircleAlert as AlertCircle, RefreshCw, ArrowUpRight, ArrowDownRight, Search } from 'lucide-react';
 import { DASHBOARD_STATS, RECENT_ACTIVITY, REPORTS_TABLE, REVENUE_DATA } from '@/lib/mock-data';
+import { PRICING_PLANS } from '../../lib/mock-data'
 
 function StatCard({ stat, index }: { stat: typeof DASHBOARD_STATS[0]; index: number }) {
   return (

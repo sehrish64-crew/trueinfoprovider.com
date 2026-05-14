@@ -8,11 +8,7 @@ const nextConfig = {
     unoptimized: true,
   },
 
-  webpack(config, { isServer }) {
-    if (isServer) {
-      config.output.chunkFilename = '[name]..js';
-    }
-
+  webpack(config) {
     return config;
   },
 };
