@@ -75,12 +75,16 @@ export function Footer() {
           <p className="text-xs text-gray-400">
             &copy; 2026 True Info Provider. All rights reserved.
           </p>
-          <div className="flex items-center gap-6">
-            {['Privacy Policy', 'Terms of Service', 'Cookie Policy'].map((item) => (
-              <span key={item} className="text-xs text-gray-400 hover:text-gray-600 cursor-pointer transition-colors">
-                {item}
-              </span>
-            ))}
+          <div className="flex items-center gap-6 text-xs text-gray-400">
+            <Link href="/privacy-policy" className="hover:text-gray-600 transition-colors">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="hover:text-gray-600 transition-colors">
+              Terms & Conditions
+            </Link>
+            <Link href="/refund-policy" className="hover:text-gray-600 transition-colors">
+              Refund Policy
+            </Link>
           </div>
         </div>
       </div>
