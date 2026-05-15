@@ -249,7 +249,7 @@ export default function Home() {
 
                   {/* HD Car Image */}
                   <Image
-                    src="/ai-2.jfif"
+                    src="/ai-2.jpg"
                     alt="AI health analysis"
                     fill
                     priority
@@ -793,7 +793,7 @@ export default function Home() {
               <div className="relative rounded-3xl overflow-hidden border border-emerald-100 shadow-2xl">
 
                 <Image
-                  src="/ai.jfif"
+                  src="/ai.jpg"
                   alt="AI health analysis"
                   width={600}
                   height={420}
