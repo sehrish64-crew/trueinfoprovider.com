@@ -56,12 +56,6 @@ export function Navbar() {
 
           <div className="hidden md:flex items-center gap-3">
             <Link
-              href="/admin"
-              className="px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-all"
-            >
-              Admin
-            </Link>
-            <Link
               href="/analysis"
               className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm shadow-emerald-600/20"
             >
@@ -102,13 +96,6 @@ export function Navbar() {
                   {link.label}
                 </Link>
               ))}
-              <Link
-                href="/admin"
-                onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-              >
-                Admin Dashboard
-              </Link>
               <Link
                 href="/analysis"
                 onClick={() => setMobileOpen(false)}

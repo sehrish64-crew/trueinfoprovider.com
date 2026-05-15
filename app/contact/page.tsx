@@ -75,9 +75,9 @@ export default function ContactPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
           <div className="space-y-4">
             {[
-              { icon: Mail, label: 'Email', value: 'info@trueinfoprovider.co.uk' },
-              { icon: Phone, label: 'Phone', value: '+44 20 7946 0958' },
-              { icon: MapPin, label: 'Office', value: '71 Queen Victoria St, London EC4V 4AY' },
+              { icon: Mail, label: 'Email', value: 'info@trueinfoprovider.com' },
+              { icon: Phone, label: 'Phone', value: '+44 20 1234 5678' },
+              { icon: MapPin, label: 'Office', value: ' NA, 286 Nakhlath, Haji Malak Goth Gadap Town, Karachi' },
               { icon: Clock, label: 'Hours', value: 'Mon-Fri 9:00 - 18:00 GMT' },
             ].map((item, i) => (
               <motion.div key={item.label} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }} className="p-5 rounded-xl bg-white border border-gray-100 shadow-sm flex items-start gap-4">

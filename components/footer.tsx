@@ -57,15 +57,15 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-center gap-2.5 text-sm text-gray-500">
                 <Mail className="w-4 h-4 text-emerald-600" />
-                info@trueinfoprovider.co.uk
+                info@trueinfoprovider.com
               </li>
               <li className="flex items-center gap-2.5 text-sm text-gray-500">
                 <Phone className="w-4 h-4 text-emerald-600" />
-                +44 20 7946 0958
+                +44 20 1234 5678
               </li>
               <li className="flex items-start gap-2.5 text-sm text-gray-500">
                 <MapPin className="w-4 h-4 text-emerald-600 mt-0.5" />
-                71 Queen Victoria St, London EC4V 4AY
+                 NA, 286 Nakhlath, Haji Malak Goth Gadap Town, Karachi
               </li>
             </ul>
           </div>

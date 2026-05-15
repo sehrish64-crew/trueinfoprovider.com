@@ -205,7 +205,7 @@ export default function Home() {
 
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  <span>AI results in under 2 min</span>
+                  <span>Scanning in Under 2 min</span>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -218,7 +218,6 @@ export default function Home() {
             </motion.div>
 
             {/* RIGHT SIDE */}
-            {/* RIGHT SIDE */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -227,29 +226,28 @@ export default function Home() {
             >
 
               {/* Main Card */}
-              <div className="relative rounded-[32px] border border-emerald-100 bg-white/70 backdrop-blur-xl overflow-hidden shadow-[0_20px_80px_rgba(16,185,129,0.12)]">
+              <div className="relative rounded-[24px] sm:rounded-[32px] border border-emerald-100 bg-white/70 backdrop-blur-xl overflow-hidden shadow-[0_20px_80px_rgba(16,185,129,0.12)]">
 
                 {/* Top Bar */}
-                <div className="absolute top-0 left-0 right-0 z-50 flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5">
+                <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between gap-2 p-3 sm:p-5">
 
-                  <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/95 backdrop-blur-md border border-emerald-100 shadow-sm flex-shrink-0">
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-
-                    <span className="text-[10px] sm:text-xs font-semibold text-gray-700">
+                  <div className="flex items-center gap-1.5 sm:gap-2 px-2 py-1 sm:px-2.5 rounded-full bg-white/95 backdrop-blur-md border border-emerald-100 shadow-sm flex-shrink-0">
+                    <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[9px] sm:text-xs font-semibold text-gray-700">
                       AI Scan Active
                     </span>
                   </div>
 
-                  <div className="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-[10px] sm:text-xs font-bold text-emerald-700 shadow-sm flex-shrink-0">
+                  <div className="px-2 py-1 sm:px-2.5 rounded-full bg-emerald-50 border border-emerald-100 text-[9px] sm:text-xs font-bold text-emerald-700 shadow-sm flex-shrink-0">
                     LIVE ANALYSIS
                   </div>
 
                 </div>
 
-                {/* IMAGE AREA */}
+                {/* Image Area */}
                 <div className="relative aspect-[4/3] overflow-hidden">
 
-                  {/* HD CAR IMAGE */}
+                  {/* HD Car Image */}
                   <Image
                     src="/ai-2.jfif"
                     alt="AI health analysis"
@@ -258,124 +256,88 @@ export default function Home() {
                     className="object-cover"
                   />
 
-                  {/* DARK OVERLAY */}
+                  {/* Dark Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
 
-                  {/* AI GLOW */}
+                  {/* AI Glow */}
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.18),transparent_60%)]" />
 
-                  {/* SCAN LINE */}
+                  {/* Scan Line */}
                   <motion.div
-                    className="absolute left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_20px_rgba(16,185,129,0.8)]"
-
-                    animate={{
-                      top: ['10%', '90%', '10%'],
-                    }}
-
-                    transition={{
-                      duration: 4,
-                      repeat: Infinity,
-                      ease: 'linear',
-                    }}
+                    className="absolute left-0 right-0 h-[2px] sm:h-[3px] bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_20px_rgba(16,185,129,0.8)]"
+                    animate={{ top: ['10%', '90%', '10%'] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
                   />
 
-                  {/* DETECTION LABELS */}
-                  {/* DETECTION LABELS */}
+                  {/* Detection Labels */}
                   {[
                     {
-                      positionClass: 'top-[10%] right-[4%] sm:top-[24%] sm:right-[6%]',
+                      positionClass: 'top-[10%] right-[3%] sm:top-[24%] sm:right-[6%]',
                       text: 'Rust Risk 12%',
                       bgClass: 'bg-yellow-500/90',
                       textClass: 'text-white',
-                      widthClass: 'max-w-[48%] sm:max-w-[32%]',
+                      widthClass: 'max-w-[42%] sm:max-w-[32%]',
                       iconClass: 'text-white',
                     },
-
                     {
-                      positionClass: 'bottom-[10%] right-[4%] sm:bottom-[12%] sm:right-[8%]',
+                      positionClass: 'bottom-[10%] right-[3%] sm:bottom-[12%] sm:right-[8%]',
                       text: 'Engine Healthy',
                       bgClass: 'bg-cyan-500/90',
                       textClass: 'text-white',
-                      widthClass: 'max-w-[48%] sm:max-w-[32%]',
+                      widthClass: 'max-w-[42%] sm:max-w-[32%]',
                       iconClass: 'text-white',
                     },
                   ].map((label, i) => (
                     <motion.div
                       key={i}
                       initial={{ opacity: 0 }}
-                      animate={{
-                        opacity: 1,
-                        y: [0, -6, 0],
-                      }}
-                      transition={{
-                        duration: 3 + i,
-                        repeat: Infinity,
-                      }}
-                      className={`absolute ${label.positionClass} ${label.widthClass} flex px-2 py-1 rounded-2xl ${label.bgClass} ${label.textClass} backdrop-blur-md shadow-2xl text-[8px] sm:text-[9px] lg:text-[10px] font-semibold border border-white/20 whitespace-nowrap`}
+                      animate={{ opacity: 1, y: [0, -6, 0] }}
+                      transition={{ duration: 3 + i, repeat: Infinity }}
+                      className={`absolute ${label.positionClass} ${label.widthClass} flex px-2 py-1 rounded-2xl ${label.bgClass} ${label.textClass} backdrop-blur-md shadow-2xl text-[8px] sm:text-[10px] font-semibold border border-white/20 whitespace-nowrap`}
                     >
                       <div className="flex items-center gap-1 sm:gap-2">
-                        <Zap className={`w-2.5 h-2.5 ${label.iconClass}`} />
+                        <Zap className={`w-2 h-2 sm:w-2.5 sm:h-2.5 flex-shrink-0 ${label.iconClass}`} />
                         {label.text}
                       </div>
                     </motion.div>
                   ))}
 
-                  {/* AI FOCUS POINTS */}
+                  {/* AI Focus Points */}
                   <motion.div
-                    animate={{
-                      scale: [1, 1.15, 1],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                    }}
-                    className="absolute top-[35%] left-[28%] w-5 h-5 rounded-full border-2 border-red-400 shadow-[0_0_20px_rgba(248,113,113,0.8)]"
+                    animate={{ scale: [1, 1.15, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="absolute top-[35%] left-[28%] w-3.5 h-3.5 sm:w-5 sm:h-5 rounded-full border-2 border-red-400 shadow-[0_0_20px_rgba(248,113,113,0.8)]"
                   />
-
                   <motion.div
-                    animate={{
-                      scale: [1, 1.15, 1],
-                    }}
-                    transition={{
-                      duration: 2.5,
-                      repeat: Infinity,
-                    }}
-                    className="absolute bottom-[30%] right-[24%] w-5 h-5 rounded-full border-2 border-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.8)]"
+                    animate={{ scale: [1, 1.15, 1] }}
+                    transition={{ duration: 2.5, repeat: Infinity }}
+                    className="absolute bottom-[30%] right-[24%] w-3.5 h-3.5 sm:w-5 sm:h-5 rounded-full border-2 border-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.8)]"
                   />
 
                 </div>
 
-                {/* BOTTOM STATS */}
-                <div className="relative bg-white/80 backdrop-blur-md border-t border-emerald-100 p-4 sm:p-6">
+                {/* Bottom Stats */}
+                <div className="relative bg-white/80 backdrop-blur-md border-t border-emerald-100 p-3 sm:p-6">
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
 
                     <div className="text-center">
-                      <div className="text-xl sm:text-2xl font-bold text-emerald-600">
-                        96%
-                      </div>
-
-                      <div className="text-[10px] sm:text-xs text-gray-500 mt-1">
+                      <div className="text-lg sm:text-2xl font-bold text-emerald-600">96%</div>
+                      <div className="text-[9px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 leading-tight">
                         Detection Accuracy
                       </div>
                     </div>
 
                     <div className="text-center">
-                      <div className="text-xl sm:text-2xl font-bold text-cyan-600">
-                        2m
-                      </div>
-
-                      <div className="text-[10px] sm:text-xs text-gray-500 mt-1">
+                      <div className="text-lg sm:text-2xl font-bold text-cyan-600">2m</div>
+                      <div className="text-[9px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 leading-tight">
                         Scan Duration
                       </div>
                     </div>
 
-                    <div className="text-center col-span-2 sm:col-span-1">
-                      <div className="text-xl sm:text-2xl font-bold text-gray-900">
-                        AI
-                      </div>
-
-                      <div className="text-[10px] sm:text-xs text-gray-500 mt-1">
+                    <div className="text-center">
+                      <div className="text-lg sm:text-2xl font-bold text-gray-900">AI</div>
+                      <div className="text-[9px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 leading-tight">
                         Neural Engine
                       </div>
                     </div>
@@ -511,65 +473,48 @@ export default function Home() {
             >
 
               {/* Main Card */}
-              <div className="relative rounded-3xl border border-emerald-100 bg-white/70 backdrop-blur-xl p-8 overflow-hidden shadow-[0_10px_60px_rgba(16,185,129,0.08)]">
+              <div className="relative rounded-3xl border border-emerald-100 bg-white/70 backdrop-blur-xl p-4 sm:p-8 overflow-hidden shadow-[0_10px_60px_rgba(16,185,129,0.08)]">
 
                 {/* Glow */}
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-cyan-500/5" />
 
                 {/* AI Circle */}
-                <div className="relative flex items-center justify-center h-[400px]">
+                <div className="relative flex items-center justify-center h-[280px] sm:h-[400px]">
 
                   {/* Outer Ring */}
                   <motion.div
                     animate={{ rotate: 360 }}
-                    transition={{
-                      duration: 20,
-                      repeat: Infinity,
-                      ease: 'linear',
-                    }}
-                    className="absolute w-72 h-72 rounded-full border border-emerald-200"
+                    transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                    className="absolute w-48 h-48 sm:w-72 sm:h-72 rounded-full border border-emerald-200"
                   />
 
                   {/* Middle Ring */}
                   <motion.div
                     animate={{ rotate: -360 }}
-                    transition={{
-                      duration: 14,
-                      repeat: Infinity,
-                      ease: 'linear',
-                    }}
-                    className="absolute w-56 h-56 rounded-full border border-cyan-300 border-dashed"
+                    transition={{ duration: 14, repeat: Infinity, ease: 'linear' }}
+                    className="absolute w-36 h-36 sm:w-56 sm:h-56 rounded-full border border-cyan-300 border-dashed"
                   />
 
                   {/* Core */}
                   <motion.div
-                    animate={{
-                      scale: [1, 1.08, 1],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                    }}
-                    className="relative w-32 h-32 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-400 flex items-center justify-center shadow-[0_0_60px_rgba(16,185,129,0.35)]"
+                    animate={{ scale: [1, 1.08, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="relative w-20 h-20 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-400 flex items-center justify-center shadow-[0_0_60px_rgba(16,185,129,0.35)]"
                   >
-                    <Brain className="w-16 h-16 text-white" />
+                    <Brain className="w-10 h-10 sm:w-16 sm:h-16 text-white" />
                   </motion.div>
 
                   {/* Floating Cards */}
                   {[
-
-                    { top: '18%', right: '8%', text: 'Rust Risk 12%' },
-                    { bottom: '15%', left: '5%', text: 'AI Scan Active' },
-                    { bottom: '10%', right: '10%', text: 'Engine Healthy' },
+                    { top: '18%', right: '4%', text: 'Rust Risk 12%' },
+                    { bottom: '15%', left: '2%', text: 'AI Scan Active' },
+                    { bottom: '10%', right: '4%', text: 'Engine Healthy' },
                   ].map((card, i) => (
                     <motion.div
                       key={i}
                       animate={{ y: [0, -8, 0] }}
-                      transition={{
-                        duration: 3 + i,
-                        repeat: Infinity,
-                      }}
-                      className="absolute px-4 py-2 rounded-xl bg-white/90 border border-emerald-100 shadow-lg backdrop-blur-md text-sm text-emerald-700 font-medium"
+                      transition={{ duration: 3 + i, repeat: Infinity }}
+                      className="absolute px-2 py-1 sm:px-4 sm:py-2 rounded-xl bg-white/90 border border-emerald-100 shadow-lg backdrop-blur-md text-xs sm:text-sm text-emerald-700 font-medium whitespace-nowrap"
                       style={card}
                     >
                       {card.text}
@@ -582,21 +527,19 @@ export default function Home() {
                 <div className="relative mt-4 flex items-center justify-between border-t border-emerald-100 pt-5">
 
                   <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-
-                    <span className="text-gray-600 lg:text-sm text-[10px] font-medium">
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+                    <span className="text-gray-600 text-[10px] sm:text-sm font-medium">
                       Neural AI Processing
                     </span>
                   </div>
 
-                  <span className="text-cyan-600 font-mono lg:text-sm text-[12px] font-semibold">
+                  <span className="text-cyan-600 font-mono text-[11px] sm:text-sm font-semibold">
                     STATUS: ONLINE
                   </span>
 
                 </div>
 
               </div>
-
             </motion.div>
 
           </div>
@@ -616,35 +559,56 @@ export default function Home() {
           </motion.div>
 
           <div className="relative group">
-            {/* Feature Slider with Arrows */}
-            <div ref={featureSliderRef} className="flex gap-6 overflow-x-auto scrollbar-hide pb-4 lg:pb-0">
+
+            {/* Feature Slider */}
+            <div
+              ref={featureSliderRef}
+              className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide pb-4 lg:pb-0 snap-x snap-mandatory scroll-smooth"
+            >
               {FEATURES.map((feature, i) => (
-                <motion.div key={feature.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="flex-shrink-0 w-[260px] sm:w-[280px] group p-6 sm:p-7 rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-100 transition-all duration-300 card-shine">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center mb-4 group-hover:bg-emerald-100 transition-colors">
+                <motion.div
+                  key={feature.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="flex-shrink-0 w-[calc(100vw-2rem)] xs:w-[80vw] sm:w-[260px] lg:w-[280px] snap-center group p-5 sm:p-6 lg:p-7 rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-100 transition-all duration-300 card-shine"
+                >
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 flex items-center justify-center mb-3 sm:mb-4 group-hover:bg-emerald-100 transition-colors">
                     <feature.icon className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
                   </div>
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                  <p className="text-sm sm:text-sm text-gray-500 leading-relaxed">{feature.desc}</p>
+                  <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-1.5 sm:mb-2">
+                    {feature.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
+                    {feature.desc}
+                  </p>
                 </motion.div>
               ))}
             </div>
 
-            {/* Feature Navigation Arrows */}
+            {/* Left Arrow — always visible on mobile, hover-only on desktop */}
             <button
               onClick={() => scrollFeature('left')}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur-md border border-emerald-100 shadow-lg flex items-center justify-center hover:bg-white transition-all opacity-0 group-hover:opacity-100 z-10"
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 sm:-translate-x-4 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/90 backdrop-blur-md border border-emerald-100 shadow-lg flex items-center justify-center hover:bg-white transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 z-10 disabled:opacity-30"
               disabled={featureScrollPos <= 0}
             >
-              <ArrowRight className="w-5 h-5 text-emerald-600 rotate-180" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 rotate-180" />
             </button>
+
+            {/* Right Arrow — always visible on mobile, hover-only on desktop */}
             <button
               onClick={() => scrollFeature('right')}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur-md border border-emerald-100 shadow-lg flex items-center justify-center hover:bg-white transition-all opacity-0 group-hover:opacity-100 z-10"
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 sm:translate-x-4 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/90 backdrop-blur-md border border-emerald-100 shadow-lg flex items-center justify-center hover:bg-white transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 z-10 disabled:opacity-30"
               disabled={featureScrollPos >= (featureSliderRef.current?.scrollWidth || 0) - (featureSliderRef.current?.clientWidth || 0)}
             >
-              <ArrowRight className="w-5 h-5 text-emerald-600" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
             </button>
+
           </div>
+
+          {/* Mobile swipe hint */}
+          <p className="mt-3 text-center text-[11px] text-gray-400 sm:hidden">Swipe to explore</p>
         </div>
       </section>
 
@@ -913,10 +877,10 @@ export default function Home() {
                 desc: "Future risk, repair cost & maintenance prediction generated",
               },
             ].map((step, i) => (
-              <div key={i} className="mb-10 pl-6 md:ml-6 relative">
+              <div key={i} className="mb-10 lg:pl-6 pl-0 md:ml-6 relative">
 
                 {/* Dot */}
-                <div className="absolute -left-[34px] top-1 w-4 h-4 rounded-full bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.6)] animate-pulse" />
+                <div className="absolute -left-[33px] top-1 lg:-left-[57px] w-4 h-4 rounded-full bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.6)] animate-pulse" />
 
                 {/* Card */}
                 <div className="p-6 rounded-2xl bg-white/70 border border-emerald-100 backdrop-blur-md shadow-sm hover:shadow-lg transition-all">

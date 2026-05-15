@@ -67,21 +67,7 @@ export default function AboutPage() {
             ))}
           </div>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Leadership <span className="gradient-text">Team</span></h2>
-          </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {TEAM.map((t, i) => (
-              <motion.div key={t.name} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="p-6 rounded-2xl bg-white border border-gray-100 shadow-sm text-center">
-                <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4 border-2 border-emerald-100">
-                  <Cpu className="w-8 h-8 text-emerald-600" />
-                </div>
-                <h3 className="text-base font-semibold text-gray-900">{t.name}</h3>
-                <p className="text-sm text-emerald-600 mb-2">{t.role}</p>
-                <p className="text-xs text-gray-400">{t.desc}</p>
-              </motion.div>
-            ))}
-          </div>
+        
         </div>
       </section>
     </div>

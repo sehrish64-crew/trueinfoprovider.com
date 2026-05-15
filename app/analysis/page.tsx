@@ -5,15 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import {
   Camera,
-  CircleCheck as CheckCircle2,
+  CheckCircle2,
   Lock,
   ArrowRight,
   Scan,
-  Loader as Loader2,
+  Loader2,
   X,
   Plus,
-  Check,
-  Clock,
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 
@@ -36,16 +34,6 @@ type DetectedIssue = {
   description: string;
   repairEstimate: number;
   blurred: boolean;
-};
-
-type ScanningInterfaceProps = {
-  images: ImageFile[];
-  detectedIssues: DetectedIssue[];
-  progress: number;
-  statusMessage: string;
-  errorMessage?: string | null;
-  mode: 'scanning' | 'results';
-  onUnlockReport?: () => void;
 };
 
 const SEVERITY_COLORS = {
@@ -150,9 +138,8 @@ function UnifiedImageUploader({
         }}
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
-        className={`relative rounded-3xl border-2 border-dashed p-8 transition ${
-          dragOver ? 'border-emerald-400 bg-emerald-50' : 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/50'
-        } ${isAnalyzing ? 'pointer-events-none opacity-60' : 'cursor-pointer'}`}
+        className={`relative rounded-3xl border-2 border-dashed p-8 transition ${dragOver ? 'border-emerald-400 bg-emerald-50' : 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/50'
+          } ${isAnalyzing ? 'pointer-events-none opacity-60' : 'cursor-pointer'}`}
       >
         <input
           ref={fileInputRef}
@@ -205,7 +192,11 @@ function UnifiedImageUploader({
         </div>
       )}
 
-      {images.length > 0 && <p className="mt-4 text-center text-sm text-gray-400">{images.length} uploaded image{images.length !== 1 ? 's' : ''}</p>}
+      {images.length > 0 && (
+        <p className="mt-4 text-center text-sm text-gray-400">
+          {images.length} uploaded image{images.length !== 1 ? 's' : ''}
+        </p>
+      )}
     </motion.div>
   );
 }
@@ -243,6 +234,7 @@ function ScanningInterface({
             : `Scanning ${images.length} image${images.length !== 1 ? 's' : ''} for detected damage.`}
         </p>
       </motion.div>
+
       {errorMessage ? (
         <div className="rounded-3xl border border-red-500/50 bg-red-500/10 p-4 text-red-200">
           <strong>Error:</strong> {errorMessage}
@@ -251,22 +243,17 @@ function ScanningInterface({
 
       {/* Scanner Animation */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative rounded-3xl border border-emerald-500/30 bg-gradient-to-b from-emerald-500/5 to-transparent p-6 overflow-hidden">
-<div className="relative h-40 bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
-          {/* Scanning line animation */}
+        <div className="relative h-40 bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
           <motion.div
             className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-lg shadow-emerald-400/30"
             animate={{ y: [0, 160] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
           />
-          
-          {/* Glow effect behind scanner line */}
           <motion.div
             className="absolute inset-x-0 h-16 bg-gradient-to-b from-emerald-500/20 to-transparent pointer-events-none"
             animate={{ y: [0, 160] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
           />
-
-          {/* Grid background */}
           <div className="absolute inset-0 opacity-5">
             <div className="h-full grid grid-cols-8 gap-px">
               {Array(32).fill(0).map((_, i) => (
@@ -274,8 +261,6 @@ function ScanningInterface({
               ))}
             </div>
           </div>
-
-          {/* Scanning images preview */}
           <div className="absolute inset-0 flex items-center justify-center gap-2 p-4">
             {images.slice(0, 3).map((img, idx) => (
               <motion.div
@@ -292,8 +277,6 @@ function ScanningInterface({
               <div className="text-emerald-400 text-xs font-mono">+{images.length - 3} more</div>
             )}
           </div>
-
-          {/* Scanning text */}
           <div className="absolute inset-0 flex items-end justify-center p-4 text-xs font-mono text-emerald-400/40">
             SCANNING...
           </div>
@@ -314,10 +297,11 @@ function ScanningInterface({
             transition={{ duration: 0.5 }}
           />
         </div>
-        <p className="text-xs text-gray-500 mt-3">Processing {Math.ceil((progress / 100) * images.length)} of {images.length} image{images.length !== 1 ? 's' : ''}</p>
+        <p className="text-xs text-gray-500 mt-3">
+          Processing {Math.ceil((progress / 100) * images.length)} of {images.length} image{images.length !== 1 ? 's' : ''}
+        </p>
       </motion.div>
 
-    
       {/* Detected Issues */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Detected Issues</h3>
@@ -332,42 +316,89 @@ function ScanningInterface({
               </motion.div>
             </div>
           ) : (
-            detectedIssues.map((issue, index) => (
-              <motion.div
-                key={issue.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className={`rounded-3xl border p-4 ${
-                  issue.blurred ? 'border-emerald-200 bg-emerald-50/80 backdrop-blur-sm filter blur-sm' : 'border-gray-200 bg-white'
-                }`}
-              >
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between gap-4">
-                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${SEVERITY_COLORS[issue.severity].bg} ${SEVERITY_COLORS[issue.severity].text}`}>
-                      {issue.severity.toUpperCase()}
-                    </span>
-                    <span className="text-xs text-gray-400">{Math.round(issue.confidence)}% confidence</span>
-                  </div>
-                  <h4 className={`text-lg font-semibold ${issue.blurred ? 'text-emerald-700' : 'text-gray-900'}`}>
-                    {issue.blurred ? 'More details locked' : issue.title}
-                  </h4>
-                  {!issue.blurred && (
-                    <div className="space-y-2 text-sm text-gray-600">
-                      <p>{issue.description}</p>
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        {/* <span>Location: {issue.location}</span> */}
-                        {/* <span>Est. Repair: £{issue.repairEstimate}</span> */}
+            /* All issues blurred — unlock card overlaid absolutely on top */
+            <div className="relative">
+              {/* Blurred issue cards — all locked, not interactive */}
+              <div className="space-y-4 select-none pointer-events-none" style={{ filter: 'blur(5px)' }}>
+                {detectedIssues.map((issue, index) => (
+                  <motion.div
+                    key={issue.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="rounded-3xl border border-emerald-200 bg-emerald-50/80 p-4"
+                  >
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center justify-between gap-4">
+                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${SEVERITY_COLORS[issue.severity].bg} ${SEVERITY_COLORS[issue.severity].text}`}>
+                          {issue.severity.toUpperCase()}
+                        </span>
+                        <span className="text-xs text-gray-400">{Math.round(issue.confidence)}% confidence</span>
+                      </div>
+                      <h4 className="text-lg font-semibold text-emerald-700">{issue.title}</h4>
+                      <div className="space-y-2 text-sm text-gray-600">
+                        <p>{issue.description}</p>
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          {/* <span>Location: {issue.location}</span> */}
+                          {/* <span>Est. Repair: £{issue.repairEstimate}</span> */}
+                        </div>
                       </div>
                     </div>
-                  )}
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Unlock card — absolutely positioned over the blurred area */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="absolute inset-x-0 top-[37%] -translate-y-1/2 mx-2 sm:mx-4 rounded-2xl sm:rounded-3xl border border-emerald-200 bg-white/90 backdrop-blur-md p-4 sm:p-6 shadow-xl"
+              >
+                <div className="flex flex-col items-center text-center gap-3 sm:gap-4">
+
+                  <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                    <Lock className="h-5 w-5 sm:h-6 sm:w-6" />
+                  </div>
+
+                  <div>
+                    <h4 className="text-base sm:text-lg font-bold text-gray-900 mb-1">
+                      Unlock Full Vehicle Report
+                    </h4>
+                    <p className="text-gray-500 text-xs sm:text-sm max-w-xs mx-auto leading-relaxed">
+                      {detectedIssues.length} issue{detectedIssues.length !== 1 ? 's' : ''} detected. Get the complete breakdown — exact locations, repair estimates, and severity ratings.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col xs:flex-row flex-wrap justify-center gap-x-3 gap-y-1.5 text-xs sm:text-sm text-gray-500">
+                    <span className="flex items-center justify-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-500 flex-shrink-0" />
+                      Full damage breakdown
+                    </span>
+                    <span className="flex items-center justify-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-500 flex-shrink-0" />
+                      Repair cost estimates
+                    </span>
+                    <span className="flex items-center justify-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-500 flex-shrink-0" />
+                      Priority repair order
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={onUnlockReport}
+                    className="inline-flex items-center gap-2 rounded-xl sm:rounded-2xl bg-emerald-600 px-5 py-2.5 sm:px-7 sm:py-3 text-sm sm:text-base text-white font-semibold shadow-md hover:bg-emerald-500 active:scale-95 transition-all"
+                  >
+                    Unlock Full Report
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+
                 </div>
               </motion.div>
-            ))
+            </div>
           )}
         </div>
       </motion.div>
-
     </div>
   );
 }
@@ -577,17 +608,17 @@ export default function AnalysisPage() {
 
       const hiddenCount = Number(analysisData.hiddenCount || 3);
       const issuesFromApi = Array.isArray(analysisData.issues) ? analysisData.issues : [];
-      const visibleIssues = issuesFromApi.length > 0
+      const allIssues = issuesFromApi.length > 0
         ? issuesFromApi.map((issue: any, index: number) => ({
-            id: issue.id?.toString() || `issue-${index}`,
-            title: issue.title || 'Detected issue',
-            severity: issue.severity || 'medium',
-            confidence: issue.confidence || 0,
-            location: issue.location || 'Exterior',
-            description: issue.description || issue.title || 'Detected issue details',
-            repairEstimate: issue.repairEstimate || 0,
-            blurred: false,
-          }))
+          id: issue.id?.toString() || `issue-${index}`,
+          title: issue.title || 'Detected issue',
+          severity: issue.severity || 'medium',
+          confidence: issue.confidence || 0,
+          location: issue.location || 'Exterior',
+          description: issue.description || issue.title || 'Detected issue details',
+          repairEstimate: issue.repairEstimate || 0,
+          blurred: true,
+        }))
         : fallbackIssues;
 
       const lockedIssues = Array.from({ length: Math.max(hiddenCount, 2) }, (_, index) => ({
@@ -601,7 +632,7 @@ export default function AnalysisPage() {
         blurred: true,
       }));
 
-      setDetectedIssues([...visibleIssues, ...lockedIssues]);
+      setDetectedIssues([...allIssues, ...lockedIssues]);
       setScanProgress(100);
       setScanStatus('✓ Analysis complete. Review your results below.');
       await new Promise((resolve) => setTimeout(resolve, 500));
