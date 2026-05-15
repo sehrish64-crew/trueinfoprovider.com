@@ -27,6 +27,7 @@ function createR2Client() {
       accessKeyId,
       secretAccessKey,
     },
+    forcePathStyle: true,
   });
 }
 
@@ -60,12 +61,12 @@ export async function downloadBufferFromR2(key: string) {
     throw new Error(`R2 object not found: ${key}`);
   }
 
-  const chunks: Uint8Array[] = [];
+  const chunks: Buffer[] = [];
   for await (const chunk of body) {
-    chunks.push(Buffer.from(chunk));
+    chunks.push(Buffer.from(chunk as Uint8Array));
   }
 
-  return Buffer.concat(chunks);
+  return Buffer.concat(chunks as unknown as Uint8Array[]);
 }
 
 export function getR2ObjectKeyFromUrl(url: string) {
