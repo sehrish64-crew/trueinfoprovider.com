@@ -25,7 +25,9 @@ export default function CheckoutPage() {
     customerName: string;
     customerEmail: string;
     selectedPlan: string;
-    vehicleId: string;
+    vin?: string;
+    category?: string;
+    vehicleId?: string;
   } | null>(null);
 
   useEffect(() => {
@@ -47,18 +49,19 @@ export default function CheckoutPage() {
       // Simulate payment processing
       await new Promise(resolve => setTimeout(resolve, 3000));
 
-      // Update payment status
-      const response = await fetch('/api/payments/update-status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          vehicleId: paymentData.vehicleId,
-          status: 'Completed'
-        }),
-      });
+      if (paymentData.vehicleId) {
+        const response = await fetch('/api/payments/update-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            vehicleId: paymentData.vehicleId,
+            status: 'Completed'
+          }),
+        });
 
-      if (!response.ok) {
-        throw new Error('Payment update failed');
+        if (!response.ok) {
+          throw new Error('Payment update failed');
+        }
       }
 
       setPaymentComplete(true);
@@ -85,12 +88,12 @@ export default function CheckoutPage() {
           <div className="text-center">
             <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Payment Data Not Found</h1>
-            <p className="text-gray-600 mb-6">Please complete the analysis request form first.</p>
+            <p className="text-gray-600 mb-6">Please complete the pricing form first.</p>
             <button
-              onClick={() => router.push('/analysis')}
+              onClick={() => router.push('/pricing')}
               className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-2xl transition-colors"
             >
-              Go to Analysis
+              Go to Pricing
             </button>
           </div>
         </div>

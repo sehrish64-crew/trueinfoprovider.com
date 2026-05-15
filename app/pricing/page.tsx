@@ -21,26 +21,17 @@ const VEHICLE_CATEGORIES = [
 
 export default function PricingPage() {
   const router = useRouter();
-  const [vehicleId, setVehicleId] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<string>('');
   const [formData, setFormData] = useState({ name: '', email: '', vin: '', category: '' });
   const [status, setStatus] = useState<'idle' | 'saving' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    setVehicleId(localStorage.getItem('latestVehicleId'));
     const savedPlan = localStorage.getItem('selectedPlan');
     if (savedPlan) {
       setSelectedPlan(savedPlan);
     }
   }, []);
-
-  const handleStartAnalysis = () => {
-    if (selectedPlan) {
-      localStorage.setItem('selectedPlan', selectedPlan);
-    }
-    router.push('/analysis');
-  };
 
   const selectedPlanData = PRICING_PLANS.find((plan) => plan.id === selectedPlan);
 
@@ -57,46 +48,21 @@ export default function PricingPage() {
       return;
     }
 
-    if (!vehicleId) {
-      setErrorMessage('Please start an AI health analysis first so we can attach the report.');
-      return;
-    }
-
     setStatus('saving');
     setErrorMessage('');
 
-    try {
-      const response = await fetch('/api/request-analysis', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerName: formData.name,
-          customerEmail: formData.email,
-          selectedPlan,
-          vehicleId,
-        }),
-      });
+    localStorage.setItem(
+      'paymentData',
+      JSON.stringify({
+        customerName: formData.name,
+        customerEmail: formData.email,
+        selectedPlan,
+        vin: formData.vin,
+        category: formData.category,
+      }),
+    );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData?.error || 'Failed to create request.');
-      }
-
-      localStorage.setItem(
-        'paymentData',
-        JSON.stringify({
-          customerName: formData.name,
-          customerEmail: formData.email,
-          selectedPlan,
-          vehicleId,
-        }),
-      );
-
-      router.push('/checkout');
-    } catch (error: any) {
-      setStatus('error');
-      setErrorMessage(error.message || 'Unable to continue to payment.');
-    }
+    router.push('/checkout');
   };
 
   return (
@@ -111,21 +77,6 @@ export default function PricingPage() {
           <p className="text-gray-600 max-w-2xl mx-auto">
             Select the right plan for your AI health report, then provide your details to continue to secure payment.
           </p>
-          {!vehicleId && (
-            <div className="mx-auto mt-8 max-w-2xl rounded-3xl border border-emerald-200 bg-white p-6 text-gray-900 shadow-md shadow-emerald-100">
-              <p className="font-medium">Choose a plan now and continue from the Health Analysis page.</p>
-              <p className="mt-2 text-sm text-gray-600">
-                No health analysis data found yet. Pick a pricing plan first, then start the AI health analysis to attach your report.
-              </p>
-              <button
-                onClick={handleStartAnalysis}
-                className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500"
-              >
-                Start AI Health Analysis
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          )}
         </motion.div>
 
         <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
@@ -236,25 +187,14 @@ export default function PricingPage() {
 
                   {errorMessage && <p className="text-sm text-red-400">{errorMessage}</p>}
 
-                  {!vehicleId ? (
-                    <button
-                      type="button"
-                      onClick={handleStartAnalysis}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-4 text-sm font-semibold text-white transition hover:bg-emerald-500"
-                    >
-                      Start AI health analysis to unlock this plan
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  ) : (
-                    <button
-                      type="submit"
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-4 text-sm font-semibold text-white transition hover:bg-emerald-500"
-                      disabled={status === 'saving'}
-                    >
-                      {status === 'saving' ? 'Continuing to Checkout...' : 'Continue to Payment'}
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  )}
+                  <button
+                    type="submit"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-4 text-sm font-semibold text-white transition hover:bg-emerald-500"
+                    disabled={status === 'saving'}
+                  >
+                    {status === 'saving' ? 'Continuing to Checkout...' : 'Continue to Checkout'}
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
                 </form>
               </div>
             ) : (
