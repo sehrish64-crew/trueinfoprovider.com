@@ -4,7 +4,7 @@ from typing import List
 import cv2
 import httpx
 import numpy as np
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from pydantic import BaseModel, HttpUrl
 from ultralytics import YOLO
 
@@ -69,6 +69,41 @@ def estimate_repair_cost(severity: str) -> str:
     if severity == "Medium":
         return "£180"
     return "£90"
+
+ALLOWED_VEHICLE_LABELS = {
+    "car",
+    "truck",
+    "bus",
+    "motorcycle",
+    "motorbike",
+    "bicycle",
+    "van",
+    "suv",
+    "pickup",
+    "vehicle",
+    "train",
+    "boat",
+}
+
+
+def is_vehicle_detection(result) -> bool:
+    if not hasattr(result, "boxes"):
+        return False
+
+    for box in result.boxes:
+        try:
+            cls = int(box.cls.cpu().numpy()) if hasattr(box.cls, "cpu") else int(box.cls)
+            try:
+                label = str(result.names.get(cls, "")).lower()
+            except AttributeError:
+                label = str(result.names[cls]).lower() if cls < len(result.names) else ""
+        except Exception:
+            continue
+        if label in ALLOWED_VEHICLE_LABELS:
+            return True
+
+    return False
+
 
 def summarize_condition(issues: List[Issue]) -> int:
     if not issues:
@@ -136,3 +171,23 @@ async def analyze(request: AnalysisRequest):
         risk_level=highest_risk,
         issues=issues,
     )
+
+
+@app.post("/vehicle-check")
+async def validate_vehicle_image(image: UploadFile = File(...)):
+    if model is None:
+        raise HTTPException(status_code=503, detail="Vehicle validation model is not available.")
+
+    content = await image.read()
+    np_img = np.frombuffer(content, np.uint8)
+    cv_image = cv2.imdecode(np_img, cv2.IMREAD_COLOR)
+    if cv_image is None:
+        raise HTTPException(status_code=400, detail="Unable to parse image data.")
+
+    try:
+        results = model(cv_image, verbose=False)
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=f"Vehicle validation failed: {error}")
+
+    is_vehicle = any(is_vehicle_detection(result) for result in results)
+    return {"isVehicle": is_vehicle}

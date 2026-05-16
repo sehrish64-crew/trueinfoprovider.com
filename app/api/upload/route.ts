@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { emitRealtimeEvent } from "@/lib/socket";
 import { rateLimit } from "@/utils/rate-limit";
 import { getImageExtension, isValidImageType } from "@/utils/validators";
+import { validateVehicleFile } from "@/utils/vehicle-validator";
 import { uploadBufferToR2 } from "@/lib/r2";
 import { query, createId } from "@/lib/db";
 
@@ -62,6 +63,14 @@ export async function POST(request: NextRequest) {
     if (!file || !isValidImageType(file.type)) {
       return NextResponse.json(
         { error: `Invalid image file at index ${i}` },
+        { status: 400 }
+      );
+    }
+
+    const isVehicle = await validateVehicleFile(file);
+    if (!isVehicle) {
+      return NextResponse.json(
+        { error: `Image at index ${i} was not recognized as a vehicle image.` },
         { status: 400 }
       );
     }
