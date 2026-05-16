@@ -12,9 +12,55 @@ import {
   Loader2,
   X,
   Plus,
+  AlertCircle,
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 
+// --- Vehicle detection (browser, no API key) ---
+const VEHICLE_CLASSES = new Set(['car', 'truck', 'bus', 'motorcycle' , 'Caravan', 'Trailer', 'Boat', 'Motorhome', 'Campervan', 'Van', 'SUV', 'Pickup', 'Minivan' , 'RV', 'Convertible', 'Coupe', 'Hatchback', 'Sedan', 'Wagon']);
+const MIN_CONFIDENCE = 0.45;
+
+let modelPromise: Promise<import('@tensorflow-models/coco-ssd').ObjectDetection> | null = null;
+
+async function getVehicleModel() {
+  if (!modelPromise) {
+    modelPromise = (async () => {
+      await import('@tensorflow/tfjs');
+      const cocoSsd = await import('@tensorflow-models/coco-ssd');
+      return cocoSsd.load({ base: 'lite_mobilenet_v2' });
+    })();
+  }
+  return modelPromise;
+}
+
+function preloadVehicleModel() {
+  return getVehicleModel();
+}
+
+function loadImageFromFile(file: File): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Could not read image'));
+    };
+    img.src = url;
+  });
+}
+
+async function fileContainsVehicle(file: File): Promise<boolean> {
+  const model = await getVehicleModel();
+  const img = await loadImageFromFile(file);
+  const predictions = await model.detect(img);
+  return predictions.some((p) => VEHICLE_CLASSES.has(p.class) && p.score >= MIN_CONFIDENCE);
+}
+
+// --- Types ---
 type ScanPhase = 'upload' | 'scanning' | 'results';
 
 type ImageFile = {
@@ -36,6 +82,25 @@ type DetectedIssue = {
   blurred: boolean;
 };
 
+type ApiIssue = {
+  id?: string | number;
+  title?: string;
+  severity?: DetectedIssue['severity'];
+  confidence?: number;
+  location?: string;
+  description?: string;
+  repairEstimate?: number;
+};
+
+type AnalysisResponse = {
+  hiddenCount?: number;
+  issues?: ApiIssue[];
+};
+
+function isApiIssue(value: unknown): value is ApiIssue {
+  return typeof value === 'object' && value !== null;
+}
+
 const SEVERITY_COLORS = {
   low: { bg: 'bg-emerald-500/20', border: 'border-emerald-500/30', text: 'text-emerald-400' },
   medium: { bg: 'bg-yellow-500/20', border: 'border-yellow-500/30', text: 'text-yellow-400' },
@@ -56,6 +121,7 @@ function UnifiedImageUploader({
 }) {
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = (file: File): boolean => {
@@ -71,28 +137,40 @@ function UnifiedImageUploader({
   const handleFiles = useCallback(
     async (files: File[]) => {
       const validFiles = files.filter(validateFile);
-      if (validFiles.length === 0) return;
+      if (validFiles.length === 0) {
+        setValidationErrors(['Please use JPEG, PNG, or WebP images under 10MB.']);
+        return;
+      }
 
       setUploading(true);
-      const imagePromises = validFiles.map(
-        (file) =>
-          new Promise<ImageFile>((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              resolve({
-                id: `img-${Date.now()}-${Math.random()}`,
-                file,
-                preview: e.target?.result as string,
-                uploaded: false,
-                analyzing: false,
-              });
-            };
-            reader.readAsDataURL(file);
-          }),
-      );
+      setValidationErrors([]);
 
-      const newImages = await Promise.all(imagePromises);
-      onImagesAdd(validFiles);
+      const accepted: File[] = [];
+      const rejected: string[] = [];
+
+      for (const file of validFiles) {
+        try {
+          const isVehicle = await fileContainsVehicle(file);
+          if (isVehicle) {
+            accepted.push(file);
+          } else {
+            rejected.push(
+              `${file.name}: No vehicle detected. Please upload photos of your Vehicles only.`,
+            );
+          }
+        } catch {
+          rejected.push(`${file.name}: Could not validate this image. Please try another photo.`);
+        }
+      }
+
+      if (rejected.length > 0) {
+        setValidationErrors(rejected);
+      }
+
+      if (accepted.length > 0) {
+        onImagesAdd(accepted);
+      }
+
       setUploading(false);
     },
     [onImagesAdd],
@@ -122,24 +200,25 @@ function UnifiedImageUploader({
       animate={{ opacity: 1, y: 0 }}
       className="bg-white/95 border border-gray-200 rounded-3xl p-8 shadow-sm"
     >
-      <div className="text-center mb-6">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+      <motion.div className="text-center mb-6">
+        <motion.div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
           <Camera className="h-8 w-8" />
-        </div>
+        </motion.div>
         <h3 className="text-xl font-semibold text-gray-900 mb-2">Upload Images for Health Analysis</h3>
-        <p className="text-gray-600">Upload your photos and let our AI analyze them instantly.</p>
-      </div>
+        <p className="text-gray-600">Upload vehicle photos only. Non-vehicle images are rejected automatically.</p>
+      </motion.div>
 
       <div
-        onClick={() => fileInputRef.current?.click()}
+        onClick={() => !uploading && fileInputRef.current?.click()}
         onDragOver={(e) => {
           e.preventDefault();
           setDragOver(true);
         }}
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
-        className={`relative rounded-3xl border-2 border-dashed p-8 transition ${dragOver ? 'border-emerald-400 bg-emerald-50' : 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/50'
-          } ${isAnalyzing ? 'pointer-events-none opacity-60' : 'cursor-pointer'}`}
+        className={`relative rounded-3xl border-2 border-dashed p-8 transition ${
+          dragOver ? 'border-emerald-400 bg-emerald-50' : 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/50'
+        } ${isAnalyzing || uploading ? 'pointer-events-none opacity-60' : 'cursor-pointer'}`}
       >
         <input
           ref={fileInputRef}
@@ -150,31 +229,55 @@ function UnifiedImageUploader({
           onChange={handleFileInput}
         />
         {uploading ? (
-          <div className="flex flex-col items-center gap-3 text-emerald-400">
+          <motion.div className="flex flex-col items-center gap-3 text-emerald-600">
             <Loader2 className="h-6 w-6 animate-spin" />
-            <p className="text-sm">Preparing your images...</p>
-          </div>
+            <p className="text-sm">Checking images for vehicle detection...</p>
+            <p className="text-xs text-gray-500">First check may take a few seconds while the AI model loads.</p>
+          </motion.div>
         ) : (
-          <div className="flex flex-col items-center gap-4 text-center text-gray-300">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
+          <motion.div className="flex flex-col items-center gap-4 text-center">
+            <motion.div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
               <Plus className="h-6 w-6 text-emerald-600" />
-            </div>
-            <div>
-              <p className="font-medium text-gray-900">Drag & drop photos</p>
+            </motion.div>
+            <motion.div>
+              <p className="font-medium text-gray-900">Drag & drop vehicle photos</p>
               <p className="text-sm text-gray-500">or click to select up to 10 images</p>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
       </div>
 
+      {validationErrors.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4"
+        >
+          <div className="flex items-start gap-2 text-red-700">
+            <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+            <motion.div className="space-y-1 text-sm">
+              <p className="font-semibold">Some images were not accepted</p>
+              {validationErrors.map((msg) => (
+                <p key={msg}>{msg}</p>
+              ))}
+            </motion.div>
+          </div>
+        </motion.div>
+      )}
+
       {images.length > 0 && (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <motion.div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {images.map((image) => (
-            <motion.div key={image.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="group relative overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
+            <motion.div
+              key={image.id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="group relative overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm"
+            >
               <img src={image.preview} alt="Preview" className="h-40 w-full object-cover" />
-              <div className="absolute inset-x-0 bottom-0 p-3 bg-white/85 backdrop-blur-sm">
-                <p className="text-sm text-gray-700">{image.uploaded ? 'Ready to scan' : 'Waiting for upload'}</p>
-              </div>
+              <motion.div className="absolute inset-x-0 bottom-0 p-3 bg-white/85 backdrop-blur-sm">
+                <p className="text-sm text-gray-700">{image.uploaded ? 'Ready to scan' : 'Vehicle verified'}</p>
+              </motion.div>
               {!isAnalyzing && (
                 <button
                   type="button"
@@ -189,12 +292,12 @@ function UnifiedImageUploader({
               )}
             </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {images.length > 0 && (
         <p className="mt-4 text-center text-sm text-gray-400">
-          {images.length} uploaded image{images.length !== 1 ? 's' : ''}
+          {images.length} vehicle image{images.length !== 1 ? 's' : ''} ready
         </p>
       )}
     </motion.div>
@@ -219,11 +322,11 @@ function ScanningInterface({
   onUnlockReport?: () => void;
 }) {
   return (
-    <div className="space-y-8">
+    <motion.div className="space-y-8">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+        <motion.div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
           <Scan className="h-8 w-8 animate-pulse" />
-        </div>
+        </motion.div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
           {mode === 'results' ? 'AI Analysis Complete' : 'AI Analysis in Progress'}
         </h2>
@@ -236,32 +339,37 @@ function ScanningInterface({
       </motion.div>
 
       {errorMessage ? (
-        <div className="rounded-3xl border border-red-500/50 bg-red-500/10 p-4 text-red-200">
+        <motion.div className="rounded-3xl border border-red-500/50 bg-red-500/10 p-4 text-red-700">
           <strong>Error:</strong> {errorMessage}
-        </div>
+        </motion.div>
       ) : null}
 
-      {/* Scanner Animation */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative rounded-3xl border border-emerald-500/30 bg-gradient-to-b from-emerald-500/5 to-transparent p-6 overflow-hidden">
-        <div className="relative h-40 bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative rounded-3xl border border-emerald-500/30 bg-gradient-to-b from-emerald-500/5 to-transparent p-6 overflow-hidden"
+      >
+        <motion.div className="relative h-40 bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
           <motion.div
             className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-lg shadow-emerald-400/30"
             animate={{ y: [0, 160] }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'linear' }}
           />
           <motion.div
             className="absolute inset-x-0 h-16 bg-gradient-to-b from-emerald-500/20 to-transparent pointer-events-none"
             animate={{ y: [0, 160] }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'linear' }}
           />
-          <div className="absolute inset-0 opacity-5">
-            <div className="h-full grid grid-cols-8 gap-px">
-              {Array(32).fill(0).map((_, i) => (
-                <div key={i} className="border border-emerald-500" />
-              ))}
-            </div>
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center gap-2 p-4">
+          <motion.div className="absolute inset-0 opacity-5">
+            <motion.div className="h-full grid grid-cols-8 gap-px">
+              {Array(32)
+                .fill(0)
+                .map((_, i) => (
+                  <motion.div key={i} className="border border-emerald-500" />
+                ))}
+            </motion.div>
+          </motion.div>
+          <motion.div className="absolute inset-0 flex items-center justify-center gap-2 p-4">
             {images.slice(0, 3).map((img, idx) => (
               <motion.div
                 key={img.id}
@@ -274,52 +382,61 @@ function ScanningInterface({
               </motion.div>
             ))}
             {images.length > 3 && (
-              <div className="text-emerald-400 text-xs font-mono">+{images.length - 3} more</div>
+              <motion.div className="text-emerald-600 text-xs font-mono">+{images.length - 3} more</motion.div>
             )}
-          </div>
-          <div className="absolute inset-0 flex items-end justify-center p-4 text-xs font-mono text-emerald-400/40">
+          </motion.div>
+          <motion.div className="absolute inset-0 flex items-end justify-center p-4 text-xs font-mono text-emerald-400/40">
             SCANNING...
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </motion.div>
 
-      {/* Progress bar with percentage */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4 text-gray-900">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm"
+      >
+        <motion.div className="flex items-center justify-between mb-4 text-gray-900">
           <span className="font-semibold">Analysis progress</span>
           <strong className="text-emerald-600 text-lg">{Math.round(progress)}%</strong>
-        </div>
-        <div className="h-4 overflow-hidden rounded-full bg-gray-100 border border-emerald-200">
+        </motion.div>
+        <motion.div className="h-4 overflow-hidden rounded-full bg-gray-100 border border-emerald-200">
           <motion.div
             className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-300 shadow-md shadow-emerald-300/20"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.5 }}
           />
-        </div>
+        </motion.div>
         <p className="text-xs text-gray-500 mt-3">
-          Processing {Math.ceil((progress / 100) * images.length)} of {images.length} image{images.length !== 1 ? 's' : ''}
+          Processing {Math.ceil((progress / 100) * images.length)} of {images.length} image
+          {images.length !== 1 ? 's' : ''}
         </p>
       </motion.div>
 
-      {/* Detected Issues */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm"
+      >
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Detected Issues</h3>
-        <div className="space-y-4">
+        <motion.div className="space-y-4">
           {detectedIssues.length === 0 ? (
-            <div className="rounded-3xl border border-gray-200 bg-emerald-50/80 p-6 text-center text-gray-600">
-              <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity }} className="flex flex-col items-center gap-3">
-                <motion.div animate={{ rotate: 360 }} transition={{ duration: 3, repeat: Infinity, ease: "linear" }}>
+            <motion.div className="rounded-3xl border border-gray-200 bg-emerald-50/80 p-6 text-center text-gray-600">
+              <motion.div
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="flex flex-col items-center gap-3"
+              >
+                <motion.div animate={{ rotate: 360 }} transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}>
                   <Scan className="h-8 w-8 text-emerald-600" />
                 </motion.div>
                 <p>Scanning for damage detection...</p>
               </motion.div>
-            </div>
+            </motion.div>
           ) : (
-            /* All issues blurred — unlock card overlaid absolutely on top */
-            <div className="relative">
-              {/* Blurred issue cards — all locked, not interactive */}
-              <div className="space-y-4 select-none pointer-events-none" style={{ filter: 'blur(5px)' }}>
+            <motion.div className="relative">
+              <motion.div className="space-y-4 select-none pointer-events-none" style={{ filter: 'blur(5px)' }}>
                 {detectedIssues.map((issue, index) => (
                   <motion.div
                     key={issue.id}
@@ -328,49 +445,44 @@ function ScanningInterface({
                     transition={{ delay: index * 0.05 }}
                     className="rounded-3xl border border-emerald-200 bg-emerald-50/80 p-4"
                   >
-                    <div className="flex flex-col gap-3">
-                      <div className="flex items-center justify-between gap-4">
-                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${SEVERITY_COLORS[issue.severity].bg} ${SEVERITY_COLORS[issue.severity].text}`}>
+                    <motion.div className="flex flex-col gap-3">
+                      <motion.div className="flex items-center justify-between gap-4">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${SEVERITY_COLORS[issue.severity].bg} ${SEVERITY_COLORS[issue.severity].text}`}
+                        >
                           {issue.severity.toUpperCase()}
                         </span>
                         <span className="text-xs text-gray-400">{Math.round(issue.confidence)}% confidence</span>
-                      </div>
+                      </motion.div>
                       <h4 className="text-lg font-semibold text-emerald-700">{issue.title}</h4>
-                      <div className="space-y-2 text-sm text-gray-600">
+                      <motion.div className="space-y-2 text-sm text-gray-600">
                         <p>{issue.description}</p>
-                        <div className="flex items-center justify-between text-xs text-gray-500">
-                          {/* <span>Location: {issue.location}</span> */}
-                          {/* <span>Est. Repair: £{issue.repairEstimate}</span> */}
-                        </div>
-                      </div>
-                    </div>
+                      </motion.div>
+                    </motion.div>
                   </motion.div>
                 ))}
-              </div>
+              </motion.div>
 
-              {/* Unlock card — absolutely positioned over the blurred area */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.2 }}
                 className="absolute inset-x-0 top-[37%] -translate-y-1/2 mx-2 sm:mx-4 rounded-2xl sm:rounded-3xl border border-emerald-200 bg-white/90 backdrop-blur-md p-4 sm:p-6 shadow-xl"
               >
-                <div className="flex flex-col items-center text-center gap-3 sm:gap-4">
-
-                  <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                <motion.div className="flex flex-col items-center text-center gap-3 sm:gap-4">
+                  <motion.div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                     <Lock className="h-5 w-5 sm:h-6 sm:w-6" />
-                  </div>
+                  </motion.div>
 
-                  <div>
-                    <h4 className="text-base sm:text-lg font-bold text-gray-900 mb-1">
-                      Unlock Full Vehicle Report
-                    </h4>
+                  <motion.div>
+                    <h4 className="text-base sm:text-lg font-bold text-gray-900 mb-1">Unlock Full Vehicle Report</h4>
                     <p className="text-gray-500 text-xs sm:text-sm max-w-xs mx-auto leading-relaxed">
-                      {detectedIssues.length} issue{detectedIssues.length !== 1 ? 's' : ''} detected. Get the complete breakdown — exact locations, repair estimates, and severity ratings.
+                      {detectedIssues.length} issue{detectedIssues.length !== 1 ? 's' : ''} detected. Get the complete
+                      breakdown — exact locations, repair estimates, and severity ratings.
                     </p>
-                  </div>
+                  </motion.div>
 
-                  <div className="flex flex-col xs:flex-row flex-wrap justify-center gap-x-3 gap-y-1.5 text-xs sm:text-sm text-gray-500">
+                  <motion.div className="flex flex-col xs:flex-row flex-wrap justify-center gap-x-3 gap-y-1.5 text-xs sm:text-sm text-gray-500">
                     <span className="flex items-center justify-center gap-1.5">
                       <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-500 flex-shrink-0" />
                       Full damage breakdown
@@ -383,23 +495,23 @@ function ScanningInterface({
                       <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-500 flex-shrink-0" />
                       Priority repair order
                     </span>
-                  </div>
+                  </motion.div>
 
                   <button
+                    type="button"
                     onClick={onUnlockReport}
                     className="inline-flex items-center gap-2 rounded-xl sm:rounded-2xl bg-emerald-600 px-5 py-2.5 sm:px-7 sm:py-3 text-sm sm:text-base text-white font-semibold shadow-md hover:bg-emerald-500 active:scale-95 transition-all"
                   >
                     Unlock Full Report
                     <ArrowRight className="h-4 w-4" />
                   </button>
-
-                </div>
+                </motion.div>
               </motion.div>
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
       </motion.div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -408,10 +520,14 @@ export default function AnalysisPage() {
   const [images, setImages] = useState<ImageFile[]>([]);
   const [detectedIssues, setDetectedIssues] = useState<DetectedIssue[]>([]);
   const [scanProgress, setScanProgress] = useState(0);
-  const [scanStatus, setScanStatus] = useState("Ready to upload images for health analysis.");
+  const [scanStatus, setScanStatus] = useState('Ready to upload images for health analysis.');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [vehicleId, setVehicleId] = useState<string | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    preloadVehicleModel().catch(console.error);
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -425,13 +541,13 @@ export default function AnalysisPage() {
   useEffect(() => {
     const socket = io({ path: '/api/socket' });
 
-    socket.on('analysis_progress', (data) => {
+    socket.on('analysis_progress', (data: { progress?: number }) => {
       if (typeof data.progress === 'number') {
         setScanProgress(data.progress);
       }
     });
 
-    socket.on('issue_detected', (data) => {
+    socket.on('issue_detected', (data: DetectedIssue) => {
       setDetectedIssues((prev) => {
         if (prev.some((item) => item.id === data.id)) {
           return prev;
@@ -481,7 +597,7 @@ export default function AnalysisPage() {
     );
 
     Promise.all(imagePromises).then((newImages) => {
-      setImages((prev) => [...prev, ...newImages]);
+      setImages((prev) => [...prev, ...newImages].slice(0, 10));
     });
   }, []);
 
@@ -513,6 +629,7 @@ export default function AnalysisPage() {
       setScanStatus('Uploading to cloud storage...');
       setScanProgress(25);
       let currentVehicleId = `demo-${Date.now()}`;
+
       try {
         const uploadResponse = await fetch('/api/upload', {
           method: 'POST',
@@ -541,7 +658,8 @@ export default function AnalysisPage() {
       setScanStatus('Performing AI health analysis...');
       setScanProgress(55);
 
-      let analysisData: any = { hiddenCount: 4, issues: [] };
+      let analysisData: AnalysisResponse = { hiddenCount: 4, issues: [] };
+
       try {
         const controller = new AbortController();
         const timeoutId = window.setTimeout(() => controller.abort(), 30000);
@@ -562,7 +680,7 @@ export default function AnalysisPage() {
 
         setScanStatus('Waiting for AI server response...');
         setScanProgress(65);
-        analysisData = await analysisResponse.json();
+        analysisData = (await analysisResponse.json()) as AnalysisResponse;
       } catch (analysisError) {
         console.warn('Analysis fallback, using demo issues:', analysisError);
         setScanStatus('AI server unavailable. Showing demo results.');
@@ -606,40 +724,47 @@ export default function AnalysisPage() {
         },
       ];
 
-      const hiddenCount = Number(analysisData.hiddenCount || 3);
-      const issuesFromApi = Array.isArray(analysisData.issues) ? analysisData.issues : [];
-      const allIssues = issuesFromApi.length > 0
-        ? issuesFromApi.map((issue: any, index: number) => ({
-          id: issue.id?.toString() || `issue-${index}`,
-          title: issue.title || 'Detected issue',
-          severity: issue.severity || 'medium',
-          confidence: issue.confidence || 0,
-          location: issue.location || 'Exterior',
-          description: issue.description || issue.title || 'Detected issue details',
-          repairEstimate: issue.repairEstimate || 0,
-          blurred: true,
-        }))
-        : fallbackIssues;
+      const hiddenCount = Number(analysisData.hiddenCount ?? 3);
+      const issuesFromApi = Array.isArray(analysisData.issues)
+        ? analysisData.issues.filter(isApiIssue)
+        : [];
 
-      const lockedIssues = Array.from({ length: Math.max(hiddenCount, 2) }, (_, index) => ({
-        id: `locked-${index}`,
-        title: 'Locked damage point',
-        severity: index === 0 ? 'high' : 'medium',
-        confidence: 100,
-        location: 'Locked area',
-        description: 'Unlock your full AI report to reveal the exact issue and repair estimate.',
-        repairEstimate: 0,
-        blurred: true,
-      }));
+      const allIssues: DetectedIssue[] =
+        issuesFromApi.length > 0
+          ? issuesFromApi.map((issue, index) => ({
+              id: issue.id?.toString() ?? `issue-${index}`,
+              title: issue.title ?? 'Detected issue',
+              severity: issue.severity ?? 'medium',
+              confidence: issue.confidence ?? 0,
+              location: issue.location ?? 'Exterior',
+              description: issue.description ?? issue.title ?? 'Detected issue details',
+              repairEstimate: issue.repairEstimate ?? 0,
+              blurred: true,
+            }))
+          : fallbackIssues;
+
+      const lockedIssues: DetectedIssue[] = Array.from(
+        { length: Math.max(hiddenCount, 2) },
+        (_, index) => ({
+          id: `locked-${index}`,
+          title: 'Locked damage point',
+          severity: index === 0 ? 'high' : 'medium',
+          confidence: 100,
+          location: 'Locked area',
+          description: 'Unlock your full AI report to reveal the exact issue and repair estimate.',
+          repairEstimate: 0,
+          blurred: true,
+        }),
+      );
 
       setDetectedIssues([...allIssues, ...lockedIssues]);
       setScanProgress(100);
       setScanStatus('✓ Analysis complete. Review your results below.');
       await new Promise((resolve) => setTimeout(resolve, 500));
       setPhase('results');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Analysis error:', error);
-      const message = error?.message ?? 'Please try again.';
+      const message = error instanceof Error ? error.message : 'Please try again.';
       setErrorMessage(message);
       setScanStatus(`Analysis failed: ${message}`);
       setScanProgress(0);
@@ -651,23 +776,34 @@ export default function AnalysisPage() {
     router.push('/pricing');
   };
 
-  const currentStatus = phase === 'upload' ? 'Ready to upload images.' : scanStatus;
+  const currentStatus = phase === 'upload' ? 'Ready to upload vehicle images.' : scanStatus;
 
   return (
-    <div className="min-h-screen bg-emerald-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <motion.div className="min-h-screen bg-emerald-50">
+      <motion.div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8 mt-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">AI Health Analysis</h1>
-          <p className="text-xl text-gray-600 mb-6">Upload images and get instant AI-powered health analysis.</p>
+          <p className="text-xl text-gray-600 mb-6">
+            Upload vehicle images and get instant AI-powered health analysis.
+          </p>
         </motion.div>
 
         <AnimatePresence mode="wait">
           {phase === 'upload' && (
             <motion.div key="upload" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <UnifiedImageUploader images={images} onImagesAdd={handleImagesAdd} onImageRemove={handleImageRemove} isAnalyzing={false} />
+              <UnifiedImageUploader
+                images={images}
+                onImagesAdd={handleImagesAdd}
+                onImageRemove={handleImageRemove}
+                isAnalyzing={false}
+              />
               {images.length > 0 && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mt-8">
-                  <button onClick={startAnalysis} className="inline-flex items-center gap-3 rounded-3xl bg-emerald-600 px-8 py-4 text-white font-semibold shadow-xl transition hover:bg-emerald-500">
+                  <button
+                    type="button"
+                    onClick={startAnalysis}
+                    className="inline-flex items-center gap-3 rounded-3xl bg-emerald-600 px-8 py-4 text-white font-semibold shadow-xl transition hover:bg-emerald-500"
+                  >
                     <Scan className="h-5 w-5" />
                     Start AI Analysis ({images.length} image{images.length !== 1 ? 's' : ''})
                   </button>
@@ -691,7 +827,13 @@ export default function AnalysisPage() {
           )}
 
           {phase === 'results' && (
-            <motion.div key="results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center">
+            <motion.div
+              key="results"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-center"
+            >
               <ScanningInterface
                 images={images}
                 detectedIssues={detectedIssues}
@@ -704,7 +846,7 @@ export default function AnalysisPage() {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
