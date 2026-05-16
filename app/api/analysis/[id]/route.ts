@@ -3,8 +3,8 @@ import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const analysisId = params.id;
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id: analysisId } = await params;
 
   const analysis = await prisma.healthAnalysis.findUnique({
     where: { id: analysisId },
