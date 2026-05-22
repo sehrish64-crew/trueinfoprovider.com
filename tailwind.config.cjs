@@ -102,5 +102,23 @@ module.exports = {
     },
   },
 
+  safelist: [
+    'top-[10%]',
+    'right-[3%]',
+    'sm:top-[24%]',
+    'sm:right-[6%]',
+    'bottom-[10%]',
+    'sm:bottom-[12%]',
+    'sm:right-[8%]',
+    'max-w-[42%]',
+    'sm:max-w-[32%]',
+    'bg-yellow-500/90',
+    'bg-cyan-500/90',
+    'bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.18),transparent_60%)]',
+    'shadow-[0_0_20px_rgba(16,185,129,0.8)]',
+    'shadow-[0_0_20px_rgba(248,113,113,0.8)]',
+    'shadow-[0_0_20px_rgba(250,204,21,0.8)]',
+  ],
+
    plugins: [],
 };
