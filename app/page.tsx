@@ -116,8 +116,10 @@ export default function Home() {
     };
   }, []);
 
-  const whatsappPhone = '07555979712'; // Replace with your WhatsApp number in international format (no +)
-  const whatsappText = 'Hello%2C%20I%20would%20like%20AI%20health%20analysis.';
+ const whatsappPhone = '447555979712';
+const whatsappText = encodeURIComponent('Hello, I would like AI health analysis.');
+
+const url = `https://wa.me/${whatsappPhone}?text=${whatsappText}`;
 
   return (
     <div className="min-h-screen">
