@@ -66,7 +66,7 @@ export default function PricingPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8 sm:mb-12"
+          className="text-center mb-8 sm:mb-12 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm"
         >
           <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1.5 sm:px-4 sm:py-2 text-emerald-700 mb-4 sm:mb-5 border border-emerald-200">
             <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -78,6 +78,20 @@ export default function PricingPage() {
           <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto px-2">
             Select the right plan for your AI health report, then provide your details to continue to secure payment.
           </p>
+          <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3 sm:gap-4 text-sm text-gray-700 max-w-2xl mx-auto px-2">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 border border-emerald-100 shadow-sm">
+              <Check className="w-4 h-4 text-emerald-600" />
+              <span>One-time payment only</span>
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 border border-emerald-100 shadow-sm">
+              <Check className="w-4 h-4 text-emerald-600" />
+              <span>14-day money-back guarantee</span>
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 border border-emerald-100 shadow-sm">
+              <Check className="w-4 h-4 text-emerald-600" />
+              <span>Instant digital delivery</span>
+            </div>
+          </div>
         </motion.div>
 
         {/* Main Grid */}
@@ -85,8 +99,12 @@ export default function PricingPage() {
 
           {/* Left Column */}
           <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-
-            {/* Plan Cards */}
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-2xl font-semibold text-slate-900 border-l-4 border-emerald-600 pl-4 py-2 bg-emerald-50 rounded-xl">
+                Choose your plan
+              </h2>
+              <div className="mt-6">
+                {/* Plan Cards */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -115,24 +133,30 @@ export default function PricingPage() {
                     )}
                   </div>
                   <div className="text-2xl sm:text-3xl font-bold text-gray-900">£{plan.price}</div>
-                  <div className="text-xs sm:text-sm text-gray-600">/ report</div>
+                  <div className="text-xs sm:text-sm text-gray-600">report</div>
                 </button>
               ))}
             </motion.div>
+          </div>
+        </div>
 
             {/* Secure Checkout Notice */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl sm:rounded-3xl border border-gray-200 bg-white p-4 sm:p-6 lg:p-8 shadow-sm"
+              className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
             >
-              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
-                <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 flex-shrink-0" />
-                <span className="text-xs sm:text-sm text-emerald-700 font-medium">Secure checkout</span>
-              </div>
-              <p className="text-xs sm:text-base text-gray-600">
+              <h2 className="text-2xl font-semibold text-slate-900 border-l-4 border-emerald-600 pl-4 py-2 bg-emerald-50 rounded-xl">
+                Secure checkout
+              </h2>
+              <p className="mt-4 text-slate-700">
                 Your order is protected and your information is used only to generate the full AI health report.
               </p>
+              <ul className="mt-4 list-disc pl-6 space-y-2 text-slate-700">
+                <li>Payments are processed securely through Paddle.</li>
+                <li>Your billing and report details remain encrypted.</li>
+                <li>Instant digital delivery once purchase completes.</li>
+              </ul>
             </motion.div>
           </div>
 
@@ -143,12 +167,12 @@ export default function PricingPage() {
             className="rounded-2xl sm:rounded-3xl border border-gray-200 bg-white p-4 sm:p-6 lg:p-8 shadow-sm"
           >
             <div className="mb-5 sm:mb-8">
-              <p className="text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.24em] text-emerald-700">
+              <h2 className="text-2xl font-semibold text-slate-900 border-l-4 border-emerald-600 pl-4 py-2 bg-emerald-50 rounded-xl">
                 Order summary
-              </p>
-              <h2 className="mt-2 sm:mt-3 text-xl sm:text-2xl font-semibold text-gray-900">
-                Your Report Purchase
               </h2>
+              <p className="mt-3 text-sm sm:text-base text-gray-600">
+                Confirm your selected report plan and payment details before checkout.
+              </p>
             </div>
 
             {selectedPlanData ? (
@@ -175,7 +199,7 @@ export default function PricingPage() {
                   {[
                     { label: 'Full Name', key: 'name', type: 'text', placeholder: 'Jane Doe' },
                     { label: 'Email', key: 'email', type: 'email', placeholder: 'jane@example.com' },
-                    { label: 'VIN Number', key: 'vin', type: 'text', placeholder: '1HGCM82633A004352' },
+                    { label: 'VIN / Plate Number', key: 'vin', type: 'text', placeholder: '1HGCM82633A004352' },
                   ].map(({ label, key, type, placeholder }) => (
                     <div key={key}>
                       <label className="text-xs sm:text-sm font-medium text-gray-700">{label}</label>

@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin, Send, MessageSquare, Clock } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, MessageSquare, MessageCircle, Clock } from 'lucide-react';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -76,9 +76,10 @@ export default function ContactPage() {
           <div className="space-y-4">
             {[
               { icon: Mail, label: 'Email', value: 'info@trueinfoprovider.com' },
-              { icon: Phone, label: 'Phone', value: '+44 20 1234 5678' },
-              { icon: MapPin, label: 'Office', value: ' NA, 286 Nakhlath, Haji Malak Goth Gadap Town, Karachi' },
-              { icon: Clock, label: 'Hours', value: 'Mon-Fri 9:00 - 18:00 GMT' },
+             
+              { icon: MessageCircle, label: 'WhatsApp', value: '+44 7555 979712', href: 'https://wa.me/447555979712' },
+              { icon: MapPin, label: 'Office', value: 'SIU OFFICES, 4-6 GREATOREX STREET LONDON UNITED KINGDOM E1 5NF' },
+              { icon: Clock, label: 'Hours', value: 'Mon-Sat 24 Hours' },
             ].map((item, i) => (
               <motion.div key={item.label} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }} className="p-5 rounded-xl bg-white border border-gray-100 shadow-sm flex items-start gap-4">
                 <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
@@ -86,7 +87,13 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-400 mb-1">{item.label}</p>
-                  <p className="text-sm text-gray-900 font-medium">{item.value}</p>
+                  {item.href ? (
+                    <a href={item.href} target="_blank" rel="noreferrer noopener" className="text-sm text-gray-900 font-medium hover:text-emerald-600 transition-colors">
+                      {item.value}
+                    </a>
+                  ) : (
+                    <p className="text-sm text-gray-900 font-medium">{item.value}</p>
+                  )}
                 </div>
               </motion.div>
             ))}

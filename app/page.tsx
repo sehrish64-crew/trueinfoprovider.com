@@ -116,7 +116,7 @@ export default function Home() {
     };
   }, []);
 
-  const whatsappPhone = '919999999999'; // Replace with your WhatsApp number in international format (no +)
+  const whatsappPhone = '07555979712'; // Replace with your WhatsApp number in international format (no +)
   const whatsappText = 'Hello%2C%20I%20would%20like%20AI%20health%20analysis.';
 
   return (

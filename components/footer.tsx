@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ShieldCheck, Mail, MapPin, Phone } from 'lucide-react';
+import { ShieldCheck, Mail, MapPin, Phone, MessageCircle } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -59,13 +59,16 @@ export function Footer() {
                 <Mail className="w-4 h-4 text-emerald-600" />
                 info@trueinfoprovider.com
               </li>
+             
               <li className="flex items-center gap-2.5 text-sm text-gray-500">
-                <Phone className="w-4 h-4 text-emerald-600" />
-                +44 20 1234 5678
+                <MessageCircle className="w-4 h-4 text-emerald-600" />
+                <a href="https://wa.me/447555979712" target="_blank" rel="noreferrer noopener" className="hover:text-emerald-600 transition-colors">
+                  +44 7555 979712
+                </a>
               </li>
               <li className="flex items-start gap-2.5 text-sm text-gray-500">
-                <MapPin className="w-4 h-4 text-emerald-600 mt-0.5" />
-                 NA, 286 Nakhlath, Haji Malak Goth Gadap Town, Karachi
+                <MapPin className="w-9 text-emerald-600 mt-0.5" />
+                 SIU OFFICES, 4-6 GREATOREX STREET LONDON UNITED KINGDOM E1 5NF
               </li>
             </ul>
           </div>
